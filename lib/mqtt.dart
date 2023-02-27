@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:iot/config.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 
-final client = MqttServerClient('20.238.24.213', '');
+final client = MqttServerClient(brokerIP, '');
 
 var pongCount = 0; // Pong counter
 
