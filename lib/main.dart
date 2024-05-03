@@ -1,44 +1,47 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import 'package:iot/WelcomePage.dart'; // Import the welcome page
+import 'package:iot/WelcomePage.dart';
+import 'SettingsPage.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: MaterialApp(
+        title: 'MyApp',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => WelcomePage(),
+          '/settings': (context) => SettingsPage(),
+          '/home': (context) => ChangeNotifierProvider<TempHumProvider>(
+            create: (context) => TempHumProvider(),
+            child: MyHomePage(),
+          ),
+        },
+      ),
+    );
+  }
 }
 
 class TempHumProvider extends ChangeNotifier {
-  String temp = '20'; // Set initial value to '20'
-  String hum = '0'; // Set initial value to '0'
+  String temp = '20';
+  String hum = '10';
 
   void updateValues(String newTemp, String newHum) {
     temp = newTemp;
     hum = newHum;
     notifyListeners();
-  }
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      // Define routes
-      routes: {
-        '/': (context) => ChangeNotifierProvider<TempHumProvider>(
-          create: (context) => TempHumProvider(),
-          child: MyHomePage(),
-        ),
-        '/welcome': (context) => WelcomePage(),
-      },
-    );
   }
 }
 
@@ -55,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    connecttosocket();
+    connecttosocket(); // Connect to WebSocket when the widget initializes
   }
 
   void connecttosocket() {
@@ -78,7 +81,6 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       );
 
-      // Initial message to request temperature and humidity data
       final message = {'type': 'get_data'};
       socket.add(jsonEncode(message));
       print('Sent message: $message');
@@ -104,7 +106,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Home"),
+        backgroundColor: Colors.blueAccent,
       ),
+      backgroundColor: Colors.white,
       body: Consumer<TempHumProvider>(
         builder: (context, value, child) {
           return Column(
@@ -116,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 enableLoadingAnimation: true,
                 animationDuration: 2000,
                 title: GaugeTitle(
-                  text: "Home temperature",
+                  text: "temperature",
                   textStyle: const TextStyle(fontSize: 23),
                 ),
                 axes: <RadialAxis>[
@@ -158,7 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 enableLoadingAnimation: true,
                 animationDuration: 2000,
                 title: const GaugeTitle(
-                  text: "Home humidity",
+                  text: "humidity",
                   textStyle: TextStyle(fontSize: 23),
                 ),
                 axes: <RadialAxis>[
@@ -193,25 +197,23 @@ class _MyHomePageState extends State<MyHomePage> {
                   )
                 ],
               ),
-              SizedBox(
-                height: 20,
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Navigate to the welcome page
-                  Navigator.pushNamed(context, '/welcome');
-                },
-                child: Text('Welcome Page'),
-              ),
             ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // You can send a message here if needed
-        },
-        child: const Icon(Icons.refresh),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context); // Navigate back to the previous screen
+          },
+          child: Text('Go Back', style: TextStyle(color: Colors.black)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueAccent,
+            disabledForegroundColor: Colors.black.withOpacity(0.7).withOpacity(0.38),
+            disabledBackgroundColor: Colors.black.withOpacity(0.7).withOpacity(0.12),
+          ),
+        ),
       ),
     );
   }
