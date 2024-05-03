@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:iot/WelcomePage.dart';
 import 'SettingsPage.dart';
+import 'login.dart';
 
 void main() {
   runApp(MyApp());
@@ -22,7 +23,8 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => WelcomePage(),
+          '/': (context) => LoginPage(),
+          '/welcome':(context)=>WelcomePage(),
           '/settings': (context) => SettingsPage(),
           '/home': (context) => ChangeNotifierProvider<TempHumProvider>(
             create: (context) => TempHumProvider(),
