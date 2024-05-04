@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-
+import'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:iot/WelcomePage.dart';
 import 'SettingsPage.dart';
 import 'login.dart';
-
+import 'dart:async';
 void main() {
   runApp(MyApp());
 }
@@ -37,8 +37,8 @@ class MyApp extends StatelessWidget {
 }
 
 class TempHumProvider extends ChangeNotifier {
-  String temp = '20';
-  String hum = '10';
+  String temp = '23';
+  String hum = '15';
 
   void updateValues(String newTemp, String newHum) {
     temp = newTemp;
@@ -53,19 +53,20 @@ class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
-
 class _MyHomePageState extends State<MyHomePage> {
   late WebSocket socket;
+  late Timer _timer;
 
   @override
   void initState() {
     super.initState();
-    connecttosocket(); // Connect to WebSocket when the widget initializes
+    connecttosocket();
+    _startTimer();
   }
 
   void connecttosocket() {
     final serverAddress = "ws://192.168.0.1:81";
-
+    print("work in progress please wait ");
     WebSocket.connect(serverAddress).then((WebSocket socket) {
       print('Connected to WebSocket server');
       this.socket = socket;
@@ -91,6 +92,17 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      updateValues();
+    });
+  }
+
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
   void handleMessage(dynamic message) {
     if (message == "connected") {
       print("connected");
@@ -102,6 +114,29 @@ class _MyHomePageState extends State<MyHomePage> {
       Provider.of<TempHumProvider>(context, listen: false).updateValues(temp, hum);
     }
   }
+
+  void updateValues() {
+    final tempProvider = Provider.of<TempHumProvider>(context, listen: false);
+    tempProvider.updateValues(_getRandomTemperature(tempProvider.temp), _getRandomHumidity(tempProvider.hum));
+  }
+
+  String _getRandomTemperature(String currentTempStr) {
+    double currentTemp = double.parse(currentTempStr);
+    Random random = Random();
+    double tempChange = (random.nextDouble() * 0.6) - 0.3; // Adjusted the range of temperature change
+    double newTemp = (currentTemp + tempChange).clamp(0.0, 50.0);
+    return newTemp.toStringAsFixed(2);
+  }
+
+
+  String _getRandomHumidity(String currentHumStr) {
+    double currentHum = double.parse(currentHumStr);
+    Random random = Random();
+    double humChange = (random.nextDouble() * 0.06) - 0.008; // Adjusted the range of humidity change
+    double newHum = (currentHum + humChange).clamp(0.0, 100.0);
+    return newHum.toStringAsFixed(2);
+  }
+
 
   @override
   Widget build(BuildContext context) {
